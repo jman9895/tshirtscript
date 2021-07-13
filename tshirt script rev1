@@ -1,0 +1,52 @@
+var EMAIL_DRAFTED = "EMAIL DRAFTED"; //manually type in what the confirmation column will say 
+
+function draftMyEmails() {
+  var sheet = SpreadsheetApp.getActiveSheet(); // Use data from the active sheet
+  var startRow = 2;                            // First row of data to process
+  var numRows = sheet.getLastRow() - 1;        // Number of rows to process
+  var lastColumn = sheet.getLastColumn();      // Last column
+  var dataRange = sheet.getRange(startRow, 1, numRows, lastColumn) // Fetch the data range of the active sheet
+  var data = dataRange.getValues();            // Fetch values for each row in the range
+  
+  // Work through each row in the spreadsheet
+  for (var i = 0; i < data.length; ++i) {
+    var row = data[i];  
+    // Assign each row a variable
+    var Name = row[0];                // Col A: Customer Name
+    var Email = row[1];               // Col B: Customer email
+    var Qty = row[2];                       // Col C: Quantity
+    var Item = row[3];                   // Col D: Item
+    var Total = row[4];               // Col E: Total Due
+    var emailStatus = row[lastColumn - 1];  // Col E: Email Status
+    
+    // Prevent from drafing duplicates and from drafting emails without a recipient
+    if (emailStatus !== EMAIL_DRAFTED && Email) {  
+    
+      // Build the email message
+      var emailBody =  '<p>Hi ' + Name + ',<p>';
+          emailBody += '<p>I have received  your order of Quantity ' + Qty + ' of ' + Item + ',<p>';
+          emailBody += '<p>The total due for your order is $' + Total +'.<p>';
+          emailBody += '<p>Please Submit Payment Via Venmo Or Paypal using the below links, <b>PLEASE BE SURE TO INCLUDE YOUR NAME IN THE NOTES</b>: ' + Name + '</p>';
+          emailBody += '<p> You can also pay via cash (Exact change appreciated) or check at the Salisbury fire station, ask for Firefighter Nichols<p>';
+          emailBody += '<p> I will follow up with an additional email when the shirts are ready for pickup. <p>';
+          emailBody += '<p> Paypal Link <p>';
+          emailBody += '<p> Venmo Link <p>';
+          emailBody += '<p> Thank you for your business! <p>';
+          emailBody += '<p>      Matt Nichols <p>';
+          
+      
+      // Create the email draft
+      GmailApp.createDraft(
+        Email,            // Recipient
+        'Your Sailsbury Fire Dept T Shirt Order',  // Subject
+        '',                     // Body (plain text)
+        {
+        htmlBody: emailBody    // Options: Body (HTML)
+        }
+      );
+      
+      sheet.getRange(startRow + i, lastColumn).setValue(EMAIL_DRAFTED); // Update the last column with "EMAIL_DRAFTED"
+      SpreadsheetApp.flush(); // Make sure the last cell is updated right away
+    }
+  }
+}
